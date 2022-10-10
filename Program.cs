@@ -101,18 +101,8 @@ class Hexagoniser
 
         while  (! complete && beansAvailableIndex < beansAvailable.Count) { 
 
-            if (currentLayer < 2) {
-                if (currentLayer == 0) {
-                    Console.WriteLine();
-                    Console.Write(
-                        $"Processing {((double)beansAvailableIndex / beansAvailable.Count):P1}");
-                } else if (currentLayer == 1) {
-                    Console.Write("*");
-                } else if (currentLayer == 2) {
-                    Console.Write("-");
-                } else {
-                    Console.Write(".");
-                }
+            if (currentLayer == 0) {
+                Console.WriteLine($"Processing {((double)beansAvailableIndex / beansAvailable.Count):P1}");
             }
 
             if (beansAvailable[beansAvailableIndex].getQuantity() >= layerQuantity) {
