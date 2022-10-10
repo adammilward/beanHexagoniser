@@ -7,9 +7,12 @@ E.G.     r r r
        r g b g r
         r g g r
          r r r
-It's called BeanHexagoniser, because you could use coloured beans
-and it avoids names like updateBalls and hexMyBalls etc.
 */
+
+using System;
+using System.Diagnostics;
+using System.Collections.Generic;
+
 internal class Program
 {
     private static void Main(string[] args)
@@ -17,27 +20,39 @@ internal class Program
         List<BeanType> beansAvailable = new List<BeanType>();
         
         // hard coded  for convenience, but could be user inputs.
-         beansAvailable.Add(new BeanType("red", 16 * 5 + 2));
-         beansAvailable.Add(new BeanType("silver/turquise", 6 * 5 + 1));
-         beansAvailable.Add(new BeanType("blue", 25 + 3));
-         beansAvailable.Add(new BeanType("brown", 25));
-         beansAvailable.Add(new BeanType("black", 15));
-         beansAvailable.Add(new BeanType("pink", 5));
-         beansAvailable.Add(new BeanType("orange", 4));
-         beansAvailable.Add(new BeanType("yellow", 13 * 5 + 1));
+        beansAvailable.Add(new BeanType("magenta", 252));
+        beansAvailable.Add(new BeanType("black", 126));
+        beansAvailable.Add(new BeanType("orange", 84));
+        beansAvailable.Add(new BeanType("brown", 78));
+        beansAvailable.Add(new BeanType("pink", 7));
+
+        //  beansAvailable.Add(new BeanType("pink", 5));
+        //  beansAvailable.Add(new BeanType("orange", 4));
+        //  beansAvailable.Add(new BeanType("black", 15));
+        //  beansAvailable.Add(new BeanType("brown", 25));
+        //  beansAvailable.Add(new BeanType("blue", 25 + 3));
+        //  beansAvailable.Add(new BeanType("silver/turquise", 6 * 5 + 1));
+        //  beansAvailable.Add(new BeanType("yellow", 13 * 5 + 1));
+        //  beansAvailable.Add(new BeanType("red", 16 * 5 + 2));
+
+         
         
         int beansAvailableQuantity = 0;
         int beansUsedQuantity = 0;
 
+        // can speed things up a lot
+        //beansAvailable.Sort((BeanType a, BeanType b) => a.Quantity - b.Quantity);
+
         Console.WriteLine($"You have {beansAvailable.Count} types of bean these are they:");
         for (int i = 0; i < beansAvailable.Count; i++)
         {
-            Console.WriteLine(
-                $"{i}: {beansAvailable[i].getColour()} x {beansAvailable[i].getQuantity()} ");
-            beansAvailableQuantity += beansAvailable[i].getQuantity();
+            Console.WriteLine($"{i}: {beansAvailable[i].Colour} x {beansAvailable[i].Quantity} ");
+            beansAvailableQuantity += beansAvailable[i].Quantity;
         }
 
+        Timer timer = Timer.Instance;
         List<string> colourList = Hexagoniser.hexMyBeans(beansAvailable);
+        Console.WriteLine($"finished calculation: {timer.elapsed}s");
 
         Console.WriteLine();
 
@@ -52,13 +67,13 @@ internal class Program
         Console.WriteLine($"You can Use {beansUsedQuantity} beans");
         Console.WriteLine(
             $"{beansAvailableQuantity} - {beansUsedQuantity} = {beansAvailableQuantity - beansUsedQuantity} beans left over");
+        Console.WriteLine($"Total elapsed {timer.elapsed} s");
     }
 }
 
 /**
-Given a list of beans/balls and thier quantities, finds the arrangement
-of concentric hexagons of beans, each ring/layer in the hexagon must be of one color, 
-that uses the most beans. 
+Given a list of beans/balls and thier quantities, finds the largest possible arrangement
+of concentric hexagons of beans, each ring/layer in the hexagon must be of one color.
 **/
 class Hexagoniser
 {
@@ -73,7 +88,7 @@ class Hexagoniser
 
         int beansRemaining = 0;
         foreach(BeanType beanType in beansAvailable) {
-            beansRemaining += beanType.getQuantity();
+            beansRemaining += beanType.Quantity;
         }
 
         bool success = recursiveBuildLayers(
@@ -82,6 +97,7 @@ class Hexagoniser
             currentAttempt,
             bestArrangement
         );
+        Console.WriteLine();
 
         return bestArrangement;
     }
@@ -99,13 +115,25 @@ class Hexagoniser
 
         bool complete = layerQuantity > beansRemaining;
 
+        Timer timer = Timer.Instance;
+
         while  (! complete && beansAvailableIndex < beansAvailable.Count) { 
 
-            if (currentLayer == 0) {
-                Console.WriteLine($"Processing {((double)beansAvailableIndex / beansAvailable.Count):P1}");
+            if (currentLayer < 2) {
+                if (currentLayer == 0) {
+                    Console.WriteLine();
+                    Console.Write(
+                        $"Processing {((double)beansAvailableIndex / beansAvailable.Count):P1} - {timer.elapsed}s ");
+                } else if (currentLayer == 1) {
+                    Console.Write("*");
+                } else if (currentLayer == 2) {
+                    Console.Write("-");
+                } else {
+                    Console.Write(".");
+                }
             }
 
-            if (beansAvailable[beansAvailableIndex].getQuantity() >= layerQuantity) {
+            if (beansAvailable[beansAvailableIndex].Quantity >= layerQuantity) {
                 // found a beanType with sufficient quantity
                 addBeans(
                     ref currentAttempt,
@@ -146,10 +174,10 @@ class Hexagoniser
         ref int beansRemaining,
         int beansAvailableIndex
     ) {
-        currentAttempt.Add(beansAvailable[beansAvailableIndex].getColour());
+        currentAttempt.Add(beansAvailable[beansAvailableIndex].Colour);
         beansAvailable[beansAvailableIndex] = new BeanType(
-            beansAvailable[beansAvailableIndex].getColour(),
-            beansAvailable[beansAvailableIndex].getQuantity() - layerQuantity
+            beansAvailable[beansAvailableIndex].Colour,
+            beansAvailable[beansAvailableIndex].Quantity - layerQuantity
         );
         beansRemaining -= layerQuantity;
     }
@@ -163,8 +191,8 @@ class Hexagoniser
     ) {
         currentAttempt.RemoveAt(currentAttempt.Count - 1);
         beansAvailable[beansAvailableIndex] = new BeanType(
-            beansAvailable[beansAvailableIndex].getColour(),
-            beansAvailable[beansAvailableIndex].getQuantity() + layerQuantity
+            beansAvailable[beansAvailableIndex].Colour,
+            beansAvailable[beansAvailableIndex].Quantity + layerQuantity
         );
         beansRemaining += layerQuantity;
     }
@@ -183,23 +211,56 @@ class Hexagoniser
 }
 
 struct BeanType {
-    private string colour;
-    private int quantity;
+    public string Colour {get; private set;}
+    public int Quantity {get; private set;}
 
     public BeanType(string colour, int quantity) {
-        this.colour = colour;
-        this.quantity = quantity; 
-    }
-
-    public string getColour() {
-        return this.colour;
-    }
-    public int getQuantity() {
-        return this.quantity;
+        this.Colour = colour;
+        this.Quantity = quantity; 
     }
 
     public void reduceQuantity(int reduction) {
-        this.quantity = this.quantity - reduction;
+        this.Quantity = this.Quantity - reduction;
     }
 }
 
+/*
+Singleton class provides a single instace of timer,
+which can be used to display time elapsed, after it was
+first instantiated.
+*/
+class Timer
+{
+    private static Timer? instance = null;
+    private static readonly object padlock = new object();
+
+    private Stopwatch stopwatch;
+
+    private Timer()
+    {
+        this.stopwatch = new Stopwatch();
+        this.stopwatch.Start();
+    }
+
+    public static Timer Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                lock (padlock) 
+                {
+                    instance = new Timer();
+                }
+            }
+            return instance;
+        }
+    }
+
+    public double elapsed {
+        get {
+            TimeSpan ts = stopwatch.Elapsed;
+            return ts.Seconds + (double)ts.Milliseconds / 1000;            
+        }
+    }
+}
