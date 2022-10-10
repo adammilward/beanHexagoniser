@@ -20,10 +20,11 @@ internal class Program
         List<BeanType> beansAvailable = new List<BeanType>();
         
         // hard coded  for convenience, but could be user inputs.
-        beansAvailable.Add(new BeanType("magenta", 252));
         beansAvailable.Add(new BeanType("black", 126));
         beansAvailable.Add(new BeanType("orange", 84));
         beansAvailable.Add(new BeanType("brown", 78));
+        beansAvailable.Add(new BeanType("magenta", 234));
+        beansAvailable.Add(new BeanType("yellow", 18 + 84));
         beansAvailable.Add(new BeanType("pink", 7));
 
         //  beansAvailable.Add(new BeanType("pink", 5));
@@ -92,7 +93,7 @@ class Hexagoniser
         }
 
         bool success = recursiveBuildLayers(
-            ref beansAvailable,
+            beansAvailable,
             beansRemaining,
             currentAttempt,
             bestArrangement
@@ -103,7 +104,7 @@ class Hexagoniser
     }
 
     private static bool recursiveBuildLayers(
-        ref List<BeanType> beansAvailable,
+        List<BeanType> beansAvailable,
         int beansRemaining,
         List<string> currentAttempt,
         List<string> bestArrangement
@@ -136,17 +137,17 @@ class Hexagoniser
             if (beansAvailable[beansAvailableIndex].Quantity >= layerQuantity) {
                 // found a beanType with sufficient quantity
                 addBeans(
-                    ref currentAttempt,
-                    ref beansAvailable,
+                    currentAttempt,
+                    beansAvailable,
                     layerQuantity,
-                    ref beansRemaining,
+                    beansRemaining,
                     beansAvailableIndex
                 );
-                updateBest(currentAttempt, ref bestArrangement);
+                updateBest(currentAttempt, bestArrangement);
                 
                 //next layer
                 complete = recursiveBuildLayers(
-                    ref beansAvailable,
+                    beansAvailable,
                     beansRemaining,
                     currentAttempt,
                     bestArrangement
@@ -154,10 +155,10 @@ class Hexagoniser
 
                 if (! complete) {
                     removeBeans(
-                        ref currentAttempt,
-                        ref beansAvailable,
+                        currentAttempt,
+                        beansAvailable,
                         layerQuantity,
-                        ref beansRemaining,
+                        beansRemaining,
                         beansAvailableIndex
                     );
                 }
@@ -168,38 +169,32 @@ class Hexagoniser
     }
 
     private static void addBeans(
-        ref List<string> currentAttempt,
-        ref List<BeanType> beansAvailable,
+        List<string> currentAttempt,
+        List<BeanType> beansAvailable,
         int layerQuantity,
-        ref int beansRemaining,
+        int beansRemaining,
         int beansAvailableIndex
     ) {
         currentAttempt.Add(beansAvailable[beansAvailableIndex].Colour);
-        beansAvailable[beansAvailableIndex] = new BeanType(
-            beansAvailable[beansAvailableIndex].Colour,
-            beansAvailable[beansAvailableIndex].Quantity - layerQuantity
-        );
+        beansAvailable[beansAvailableIndex].reduceQuantity(layerQuantity);
         beansRemaining -= layerQuantity;
     }
 
     private static void removeBeans(
-        ref List<string> currentAttempt,
-        ref List<BeanType> beansAvailable,
+        List<string> currentAttempt,
+        List<BeanType> beansAvailable,
         int layerQuantity,
-        ref int beansRemaining,
+        int beansRemaining,
         int beansAvailableIndex
     ) {
         currentAttempt.RemoveAt(currentAttempt.Count - 1);
-        beansAvailable[beansAvailableIndex] = new BeanType(
-            beansAvailable[beansAvailableIndex].Colour,
-            beansAvailable[beansAvailableIndex].Quantity + layerQuantity
-        );
+        beansAvailable[beansAvailableIndex].increaseQuantity(layerQuantity);
         beansRemaining += layerQuantity;
     }
 
     private static void updateBest(
         List<string> currentAttempt,
-        ref List<string> bestArrangement
+        List<string> bestArrangement
     ) {
         if (bestArrangement.Count < currentAttempt.Count) {
             bestArrangement.Clear();
@@ -210,17 +205,21 @@ class Hexagoniser
     }
 }
 
-struct BeanType {
+class BeanType {
     public string Colour {get; private set;}
-    public int Quantity {get; private set;}
+    public int Quantity {get; set;}
 
     public BeanType(string colour, int quantity) {
-        this.Colour = colour;
-        this.Quantity = quantity; 
+        Colour = colour;
+        Quantity = quantity; 
     }
 
     public void reduceQuantity(int reduction) {
-        this.Quantity = this.Quantity - reduction;
+        Quantity -= reduction;
+    }
+
+    public void increaseQuantity(int reduction) {
+        Quantity += reduction;
     }
 }
 
